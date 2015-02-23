@@ -1,0 +1,14 @@
+{
+  "name": "",
+  "version": "0.0.1",
+  "description": "Ideino project",
+  "author": {
+    "name": "Ideino Team"
+  },
+  "dependencies": {
+    "sync-exec": "*",
+    "ar-drone" : "*",
+    "wait": "*",
+    "sleep.js": "*"
+  }
+}
