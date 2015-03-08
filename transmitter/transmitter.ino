@@ -1,3 +1,5 @@
+//Maikko A. Aleman 2010-49834
+
 #include <RH_ASK.h>
 #include <SPI.h> 
 #include <Wire.h>
@@ -10,6 +12,8 @@ const float Pi = 3.14159;
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345);
 
+float compassReading;
+
 void setup() {
     Serial.begin(9600);	  
     if(!mag.begin()) {
@@ -21,6 +25,13 @@ void setup() {
 }
 
 void loop() {
+    compassReading = getCompassReading();
+    sendCompassReading(compassReading);
+    
+    Serial.print("sent: ");Serial.println(compassReading); //for debugging
+}
+
+float getCompassReading(void) {
     /* Get a new sensor event */
     sensors_event_t event;
     mag.getEvent(&event);
@@ -31,15 +42,17 @@ void loop() {
     if (heading < 0) {
         heading = 360 + heading;
     }
-    Serial.print("Compass Heading: ");
-    Serial.println(heading);
-      
+    
+    return heading;
+}
+
+void sendCompassReading(float heading) {
     char msg[6];
     dtostrf(heading, 3, 2, msg);
 
-    delay(300);
+    delay(50);
 
     driver.send((uint8_t *)msg, strlen(msg));
     driver.waitPacketSent();
-    delay(200);
+    delay(100);
 }
