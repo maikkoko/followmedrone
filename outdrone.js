@@ -1,3 +1,29 @@
+var linino = require('ideino-linino-lib'),
+    board = new linino.Board();
+
+var compassReading;
+
+var bit2,
+    bit3,
+    bit4,
+    bit5,
+    bit6,
+    bit7,
+    bit8,
+    bit9,
+    bit10;
+    
+    
+var pin2 = board.pin.digital.D2,
+    pin3 = board.pin.digital.D3,
+    pin4 = board.pin.digital.D4,
+    pin5 = board.pin.digital.D5,
+    pin6 = board.pin.digital.D6,
+    pin7 = board.pin.digital.D7,
+    pin8 = board.pin.digital.D8,
+    pin9 = board.pin.digital.D9,
+    pin10 = board.pin.digital.D10;
+
 var sys = require('sys');
 var exec = require('sync-exec');
 var ctr = 0;
@@ -16,14 +42,30 @@ var wait = require('wait').wait;
 var sleep = require('sleep.js');
 
 
-var rotSpeed = 10; // (deg/sec)          /*ROTATION*/
+var rotSpeed = 30; // (deg/sec)          /*ROTATION*/
 var targetDeg = -10;
 var droneDeg = 20;
-var diffDeg;
+var diffDeg=0;
 var delay1=0;
 var ctrdelay=0;
+//var bit10=1;
 
 
+
+board.connect( function(){
+    
+    
+    board.pinMode(pin2, board.MODES.INPUT);
+    board.pinMode(pin3, board.MODES.INPUT);
+    board.pinMode(pin4, board.MODES.INPUT);
+    board.pinMode(pin5, board.MODES.INPUT);
+    board.pinMode(pin6, board.MODES.INPUT);
+    board.pinMode(pin7, board.MODES.INPUT);
+    board.pinMode(pin8, board.MODES.INPUT);
+    board.pinMode(pin9, board.MODES.INPUT);
+    board.pinMode(pin10, board.MODES.INPUT);
+    
+     
 
 
 client.takeoff();
@@ -49,26 +91,52 @@ console.log(A);
 
 
 
-
 setTimeout(function(){
+
+
+    
 
     console.log('Starting auto-follow...');
     setInterval(function(){
-	
-	
-   
-            diffDeg = targetDeg-droneDeg; //in degrees
-            delay1 = diffDeg/rotSpeed;
-            if(diffDeg>0){
+        
+            
+            bit2=board.digitalRead(pin2);
+            bit3=board.digitalRead(pin3)*2;
+            bit4=board.digitalRead(pin4)*4;
+            bit5=board.digitalRead(pin5)*8;
+            bit6=board.digitalRead(pin6)*16;
+            bit7=board.digitalRead(pin7)*32;
+            bit8=board.digitalRead(pin8)*64;
+            bit9=board.digitalRead(pin9)*128;
+            bit10=board.digitalRead(pin10);
+            
+            console.log(bit2);
+            console.log(bit3);
+            console.log(bit4);
+            console.log(bit5);
+            console.log(bit6);
+            console.log(bit7);
+            console.log(bit8);
+            console.log(bit9);
+            console.log(bit10);
+            
+            compassReading = bit2+bit3+bit4+bit5+bit6+bit7+bit8+bit9;
+            console.log("compassReading");
+            console.log(compassReading);
+            
+            console.log("bit10 value");
+            console.log(bit10);
+            delay1 = compassReading/rotSpeed;
+            
+            if(bit10===0){
                 console.log("Rotate clockwise");  
                 client.clockwise(0.5);
             }
             else{
-                delay1*=-1;
                 console.log("Rotate counterclockwise");
                 client.counterClockwise(0.5);
             }
-            targetDeg+=20;
+            diffDeg+=40;
             console.log(delay1);
             
         
@@ -127,13 +195,17 @@ setTimeout(function(){
             
             
             
-            
+           
             
     },1500);
+    
+  
+    
 },delay);
 
 setTimeout(function(){client.stop();},delay+25000);
 setTimeout(function(){client.land();},delay+27000);
 
 
+});
 
