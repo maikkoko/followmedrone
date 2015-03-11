@@ -12,15 +12,8 @@ const float Pi = 3.14159;
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345);
 
-const int D0 = 2;
-const int D1 = 3;
-const int D2 = 4;
-const int D3 = 5;
-const int D4 = 6;
-const int D5 = 7;
-const int D6 = 8;
-const int D7 = 9;
-const int NEG = 10;
+const int rotateOnPin = 9;
+const int rotateDirectionPin = 7;
 
 int binary[8];
 int negval;
@@ -35,7 +28,8 @@ void setup() {
     if (!driver.init())
         Serial.println("init failed");
         
-    setupPins(); 
+    pinMode(rotateOnPin,OUTPUT);
+    pinMode(rotateDirectionPin,OUTPUT);
 }
 
 void loop() {
@@ -43,21 +37,18 @@ void loop() {
     transHeading = receiveCompassReading();
        
     if(transHeading >= 0) {
-        
+        float diff = getBearingDiff(rcvHeading, transHeading);  
+      
         //for debugging purposes
         Serial.print("rcv: ");Serial.println(rcvHeading);
         Serial.print("trans: ");Serial.println(transHeading);
-        float diff = getBearingDiff(rcvHeading, transHeading);
         Serial.print("diff: ");Serial.println(diff);
-        
-        delay(200);
         // -end
         
-        convertToBinary((int)diff);
-        setBinaryPins();
+        sendRotateCommand((int)diff);
     }
-    
-    delay(300);
+
+    delay(500);    
 }
 
 float getCompassReading(void) {
@@ -112,6 +103,37 @@ float getBearingDiff(float rcv, float trans){
     }    
 }
 
+void sendRotateCommand(int compassDifference) {
+    int polarity = 0;
+  
+    if(compassDifference < 0) {
+        compassDifference *= -1;
+        polarity = 0;
+    }
+    else {
+      polarity = 1;
+    }
+    
+    if(compassDifference > 10) {
+        digitalWrite(rotateOnPin, HIGH);
+        Serial.print("Rotation: ");
+        if(polarity == 0){
+            Serial.println("Counter Clockwise");
+            digitalWrite(rotateDirectionPin, LOW);
+        }
+        else {
+            Serial.println("Clockwise");
+            digitalWrite(rotateDirectionPin, HIGH);
+        }
+    }
+    else {
+        digitalWrite(rotateOnPin, LOW); 
+        Serial.println("Rotation: OFF");
+    }
+}
+
+
+/*** Previous Implementation ***
 void convertToBinary(int num) {
     if (num < 0) {
         negval = 1;
@@ -164,3 +186,4 @@ void setupPins(){
     pinMode(D7, OUTPUT);
     pinMode(NEG, OUTPUT); 
 }
+*/
