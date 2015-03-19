@@ -14,6 +14,8 @@ Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345);
 
 const int rotateOnPin = 9;
 const int rotateDirectionPin = 7;
+const int rotateSpeedPin1 = 6;    /*Added by jm*/
+const int rotateSpeedPin2 = 5;    /*Added by jm*/
 
 int binary[8];
 int negval;
@@ -30,12 +32,14 @@ void setup() {
         
     pinMode(rotateOnPin,OUTPUT);
     pinMode(rotateDirectionPin,OUTPUT);
+    pinMode(rotateSpeedPin1, OUTPUT); /*Added by jm*/
+    pinMode(rotateSpeedPin2, OUTPUT); /*Added by jm*/
 }
 
 void loop() {
     rcvHeading = getCompassReading();
     transHeading = receiveCompassReading();
-       
+    //Serial.print("rcv: ");Serial.println(rcvHeading);
     if(transHeading >= 0) {
         float diff = getBearingDiff(rcvHeading, transHeading);  
       
@@ -91,13 +95,13 @@ float receiveCompassReading(void) {
 float getBearingDiff(float rcv, float trans){
     if (trans > rcv) {
         if ((trans - rcv) >= 180)
-            return (-1)*((rcv - trans) + 360);
+            return (1)*((rcv - trans) + 360);
         else
             return (-1)*(trans - rcv);
     }
     else {
         if ((rcv - trans) >= 180)
-            return ((trans - rcv) + 360);
+            return (-1)*((trans - rcv) + 360);
         else
             return (rcv - trans);
     }    
@@ -125,65 +129,26 @@ void sendRotateCommand(int compassDifference) {
             Serial.println("Clockwise");
             digitalWrite(rotateDirectionPin, HIGH);
         }
+        /****The whole code from this line is added by JM, any errors after this version is my fault***/
+        if(compassDifference > 100){
+          Serial.println("Speed is 1");
+          digitalWrite(rotateSpeedPin1, LOW);
+          digitalWrite(rotateSpeedPin2, LOW);
+        }
+        else if(compassDifference > 50){
+         Serial.println("Speed is 0.5"); 
+          digitalWrite(rotateSpeedPin1, LOW);
+          digitalWrite(rotateSpeedPin2, HIGH);
+        }
+        else{
+          Serial.println("Speed is 0.1");
+          digitalWrite(rotateSpeedPin1, HIGH);
+          digitalWrite(rotateSpeedPin2, HIGH);
+        }    
+        /*** end of the code by JM ***/
     }
     else {
         digitalWrite(rotateOnPin, LOW); 
         Serial.println("Rotation: OFF");
     }
 }
-
-
-/*** Previous Implementation ***
-void convertToBinary(int num) {
-    if (num < 0) {
-        negval = 1;
-        num = abs(num);
-    } 
-    else
-        negval = 0;
-        
-    convertNumToBinary(num);
-    
-    Serial.print(negval);
-    for (int i=7; i >= 0; i--) {
-        Serial.print(binary[i]);
-    }    
-    Serial.println();
-}
-
-void convertNumToBinary(int number) {
-    for(int i = 0; i < 8; i++) {
-        if ((number%2) == 1) {
-            binary[i] = 1;
-        }
-        else
-            binary[i] = 0;
-        
-        number = number/2;              
-    }
-}
-
-void setBinaryPins(){
-    digitalWrite(D0, binary[0]);
-    digitalWrite(D1, binary[1]);
-    digitalWrite(D2, binary[2]);
-    digitalWrite(D3, binary[3]);
-    digitalWrite(D4, binary[4]);
-    digitalWrite(D5, binary[5]);
-    digitalWrite(D6, binary[6]);
-    digitalWrite(D7, binary[7]);
-    digitalWrite(NEG, negval);
-}
-
-void setupPins(){
-    pinMode(D0, OUTPUT);
-    pinMode(D1, OUTPUT);
-    pinMode(D2, OUTPUT);
-    pinMode(D3, OUTPUT);
-    pinMode(D4, OUTPUT);
-    pinMode(D5, OUTPUT);
-    pinMode(D6, OUTPUT);
-    pinMode(D7, OUTPUT);
-    pinMode(NEG, OUTPUT); 
-}
-*/
